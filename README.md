@@ -22,7 +22,8 @@ To deploy this project run these commands.
   make
 ```
 ## Usage/Examples
-
+You can find the executable in `build/install/bin`
+Just run the program.
 ```javascript
 ./ReactiveCurl
 ```
