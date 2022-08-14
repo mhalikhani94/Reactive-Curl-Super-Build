@@ -41,7 +41,7 @@ set (OPENSSL_CRYPTO_LIBRARIES ${CMAKE_INSTALL_PREFIX}/lib/libcrypto.a)
 
 ExternalProject_Add(curl
 	DEPENDS openssl
-	URL "https://github.com/mhalikhani94/Reactive-Curl-Super-Build/archive/refs/heads/main.zip"
+	URL "https://github.com/curl/curl/releases/download/curl-7_84_0/curl-7.84.0.tar.gz"
 	CMAKE_ARGS
 		-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
 		-DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_INSTALL_PREFIX}
@@ -61,8 +61,8 @@ set (CURL_INCLUDE_DIR ${CMAKE_INSTALL_PREFIX}/include)
 set (CURL_LIBRARIES ${CMAKE_INSTALL_PREFIX}/lib/libcurl.a)
 
 ExternalProject_Add(reactive-curl
-	DEPENDS zlib openssl curl
-	URL "https://github.com/mhalikhani94/ReactiveCurlSingle/archive/refs/heads/main.zip"
+	DEPENDS curl
+	URL "https://github.com/mhalikhani94/Reactive-Curl/archive/refs/tags/v0.0.1.zip"
 	CMAKE_ARGS
 		-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
 		-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
