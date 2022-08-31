@@ -1,0 +1,11 @@
+https://reactivex.io/documentation/operators.html
+http://introtorx.com/Content/v1.0.10621.0/12_CombiningSequences.html#StartWith
+https://docs.w3cub.com/reactivex/documentation/operators/startwith
+https://reactivex.io/RxCpp/
+http://reactivex.io/RxCpp/namespacerxcpp_1_1operators.html#a6108ac08ea24377088416d859895b059
+https://www.google.com/search?client=firefox-b-d&q=rxcpp+subscribe+function
+https://stackoverflow.com/questions/61295224/what-is-the-difference-between-tap-and-map-in-rxjs
+https://www.freecodecamp.org/news/an-introduction-to-subjects-in-reactive-programming-bbdc8fed7b6/
+https://proandroiddev.com/understanding-rxjava-subscribeon-and-observeon-744b0c6a41ea
+https://github.com/ReactiveX/RxCpp/issues/524
+https://stackoverflow.com/questions/32365771/rxcpp-observers-lifetime-if-using-observe-onrxcppobserve-on-new-thread
