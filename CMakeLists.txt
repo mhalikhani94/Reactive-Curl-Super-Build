@@ -11,6 +11,7 @@ cmake_policy(SET CMP0028 NEW)
 set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install CACHE PATH <comment> FORCE)
 set(REACTIVEX_PROJECT_INCLUDE_DIR ${CMAKE_INSTALL_PREFIX}/include)
 set(CMAKE_CXX_STANDARD 17)
+project(ReactiveCurl VERSION 1.0.0 LANGUAGES CXX)
 if(CMAKE_SYSTEM_NAME STREQUAL "Android")
     project(reactivex VERSION 1.0.0 LANGUAGES CXX)
     set(CMAKE_ANDROID_BUILD_ARGS
@@ -50,7 +51,7 @@ ExternalProject_Add(nlohmann
 ExternalProject_Add(yamlcpp
     DEPENDS nlohmann
     URL "https://github.com/jbeder/yaml-cpp/archive/refs/tags/yaml-cpp-0.7.0.zip"
-    BUILD_BYPRODUCTS ${CMAKE_INSTALL_PREFIX}/lib/libyaml-cppd.a
+    BUILD_BYPRODUCTS ${CMAKE_INSTALL_PREFIX}/lib/libyaml-cpp.a
     CMAKE_ARGS
         -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
         -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
@@ -60,16 +61,14 @@ ExternalProject_Add(yamlcpp
         -DYAML_CPP_BUILD_TESTS=OFF
         ${CMAKE_ANDROID_BUILD_ARGS}
 )
-if(CMAKE_SYSTEM_NAME STREQUAL "Android")
-    add_library(yamlcpp_lib STATIC IMPORTED GLOBAL)
-    add_dependencies(yamlcpp_lib yamlcpp)
-    set_target_properties(yamlcpp_lib
-        PROPERTIES IMPORTED_LOCATION
-        ${CMAKE_INSTALL_PREFIX}/lib/libyaml-cppd.a
-    )
-else()
-    set(YAMLCPP_LIBRARIES ${CMAKE_INSTALL_PREFIX}/lib/libyaml-cpp.a)
-endif()
+
+add_library(yamlcpp_lib STATIC IMPORTED GLOBAL)
+add_dependencies(yamlcpp_lib yamlcpp)
+set_target_properties(yamlcpp_lib
+    PROPERTIES IMPORTED_LOCATION
+    ${CMAKE_INSTALL_PREFIX}/lib/libyaml-cpp.a
+)
+
 
 # 3-Madler/zlib #
 
@@ -87,16 +86,15 @@ ExternalProject_Add(zlib
 )
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     set(ZLIB_LIBRARIES ${CMAKE_INSTALL_PREFIX}/lib/libzlibstatic.a)
-elseif(CMAKE_SYSTEM_NAME STREQUAL "Android")
+else()
     add_library(zlib_lib STATIC IMPORTED GLOBAL)
     add_dependencies(zlib_lib zlib)
     set_target_properties(zlib_lib
         PROPERTIES IMPORTED_LOCATION
         ${CMAKE_INSTALL_PREFIX}/lib/libz.a
-    )    
-else()
-    set(ZLIB_LIBRARIES ${CMAKE_INSTALL_PREFIX}/lib/libz.a)
-endif()
+    )
+endif()   
+
 
 # 4-Janbar/openssl-cmake #
 
@@ -115,27 +113,23 @@ ExternalProject_Add(openssl
 )
 set(OPENSSL_ROOT_DIR ${CMAKE_INSTALL_PREFIX}/ssl)
 set(OPENSSL_INCLUDE_DIR ${CMAKE_INSTALL_PREFIX}/include)
-if(CMAKE_SYSTEM_NAME STREQUAL "Android")
-    set(OPENSSL_SSL_LIBRARIES ${CMAKE_INSTALL_PREFIX}/lib/libssl_1_1.a)
-    set(OPENSSL_CRYPTO_LIBRARIES ${CMAKE_INSTALL_PREFIX}/lib/libcrypto_1_1.a)
-    
-    add_library(ssl_lib STATIC IMPORTED GLOBAL)
-    add_dependencies(ssl_lib openssl)
-    set_target_properties(ssl_lib
-        PROPERTIES IMPORTED_LOCATION
-        ${CMAKE_INSTALL_PREFIX}/lib/libssl_1_1.a
-    )
+set(OPENSSL_SSL_LIBRARIES ${CMAKE_INSTALL_PREFIX}/lib/libssl.a)
+set(OPENSSL_CRYPTO_LIBRARIES ${CMAKE_INSTALL_PREFIX}/lib/libcrypto.a)
 
-    add_library(crypto_lib STATIC IMPORTED GLOBAL)
-    add_dependencies(crypto_lib openssl)
-    set_target_properties(crypto_lib
-        PROPERTIES IMPORTED_LOCATION
-        ${CMAKE_INSTALL_PREFIX}/lib/libcrypto_1_1.a
-    )
-else()
-    set(OPENSSL_SSL_LIBRARIES ${CMAKE_INSTALL_PREFIX}/lib/libssl.a)
-    set(OPENSSL_CRYPTO_LIBRARIES ${CMAKE_INSTALL_PREFIX}/lib/libcrypto.a)
-endif()
+add_library(ssl_lib STATIC IMPORTED GLOBAL)
+add_dependencies(ssl_lib openssl)
+set_target_properties(ssl_lib
+    PROPERTIES IMPORTED_LOCATION
+    ${CMAKE_INSTALL_PREFIX}/lib/libssl.a
+)
+
+add_library(crypto_lib STATIC IMPORTED GLOBAL)
+add_dependencies(crypto_lib openssl)
+set_target_properties(crypto_lib
+    PROPERTIES IMPORTED_LOCATION
+    ${CMAKE_INSTALL_PREFIX}/lib/libcrypto.a
+)
+
 add_library(OpenSSL::SSL STATIC IMPORTED GLOBAL)
 add_library(OpenSSL::Crypto STATIC IMPORTED GLOBAL)
 set_target_properties(OpenSSL::SSL PROPERTIES IMPORTED_LOCATION ${OPENSSL_SSL_LIBRARIES})
@@ -146,7 +140,7 @@ set_target_properties(OpenSSL::Crypto PROPERTIES IMPORTED_LOCATION ${OPENSSL_CRY
 ExternalProject_Add(curl
         DEPENDS openssl
         URL "https://github.com/mhalikhani94/curl/archive/refs/tags/v0.0.2.zip"
-        BUILD_BYPRODUCTS ${CMAKE_INSTALL_PREFIX}/lib/libcurl-d.a
+        BUILD_BYPRODUCTS ${CMAKE_INSTALL_PREFIX}/lib/libcurl.a
         CMAKE_ARGS
             -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
             -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
@@ -168,16 +162,13 @@ ExternalProject_Add(curl
             -DBUILD_TESTING=OFF
             ${CMAKE_ANDROID_BUILD_ARGS}
 )
-if(CMAKE_SYSTEM_NAME STREQUAL "Android")
-    add_library(curl_lib STATIC IMPORTED GLOBAL)
-    add_dependencies(curl_lib curl)
-    set_target_properties(curl_lib
-        PROPERTIES IMPORTED_LOCATION
-        ${CMAKE_INSTALL_PREFIX}/lib/libcurl-d.a
-    )    
-else()
-    set(CURL_LIBRARIES ${CMAKE_INSTALL_PREFIX}/lib/libcurl.a)
-endif()
+
+add_library(curl_lib STATIC IMPORTED GLOBAL)
+add_dependencies(curl_lib curl)
+set_target_properties(curl_lib
+    PROPERTIES IMPORTED_LOCATION
+    ${CMAKE_INSTALL_PREFIX}/lib/libcurl.a
+)    
 
 ### Application ###
 
@@ -210,26 +201,44 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Android")
     )
 else()
 
-    ExternalProject_Add(reactive-curl
-        DEPENDS curl
-        URL "https://github.com/mhalikhani94/Reactive-Curl/archive/refs/tags/v0.0.5.zip"
-        CMAKE_ARGS
-            -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-            -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
-            -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
-            -DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}
-            -DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_INSTALL_PREFIX}
-            -DOPENSSL_ROOT_DIR=${OPENSSL_ROOT_DIR}
-            -DCURL_INCLUDE_DIRS=${REACTIVEX_PROJECT_INCLUDE_DIR}
-            -DOPENSSL_INCLUDE_DIR=${REACTIVEX_PROJECT_INCLUDE_DIR}
-            -DZLIB_INCLUDE_DIR=${REACTIVEX_PROJECT_INCLUDE_DIR}
-            -DJSONCPP_INCLUDE_DIR=${REACTIVEX_PROJECT_INCLUDE_DIR}
-            -DYAMLCPP_INCLUDE_DIR=${REACTIVEX_PROJECT_INCLUDE_DIR}
-            -DYAMLCPP_LIBRARIES=${YAMLCPP_LIBRARIES}
-            -DCURL_LIBRARIES=${CURL_LIBRARIES}
-            -DZLIB_LIBRARIES=${ZLIB_LIBRARIES}
-            -DOPENSSL_SSL_LIBRARIES=${OPENSSL_SSL_LIBRARIES}
-            -DOPENSSL_CRYPTO_LIBRARIES=${OPENSSL_CRYPTO_LIBRARIES}
-            -DOPENSSL_USE_STATIC_LIBS=TRUE
+    set(HTTP_CLIENT_FILES
+        src/http-client/curl-handler.hpp
+        src/http-client/exceptions.hpp
+        src/http-client/http-client.hpp
+        src/http-client/http-request.hpp
+        src/http-client/http-request.cpp
+        src/http-client/http-response.hpp
+        src/http-client/options.hpp
+        src/http-client/request-builder.hpp
+        src/http-client/request-builder.cpp
     )
+
+    add_executable(ReactiveCurl src/reactive-curl.cpp src/types.hpp ${HTTP_CLIENT_FILES})
+
+    add_dependencies(ReactiveCurl yamlcpp zlib openssl curl nlohmann)
+
+    include_directories("include")
+    target_include_directories(ReactiveCurl PUBLIC
+    ${REACTIVEX_PROJECT_INCLUDE_DIR}
+    )
+    if(WIN32)
+    target_link_libraries(ReactiveCurl
+    curl_lib
+    ssl_lib 
+    crypto_lib
+    zlib_lib
+    yamlcpp_lib
+    wldap32 ws2_32 Crypt32.lib Wldap32 Normaliz
+    )
+    else()
+    target_link_libraries(ReactiveCurl
+    curl_lib
+    zlib_lib
+    ssl_lib
+    crypto_lib
+    yamlcpp_lib
+    dl pthread
+    )
+    endif(WIN32)
+
 endif()
