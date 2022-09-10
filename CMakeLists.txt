@@ -69,7 +69,6 @@ set_target_properties(yamlcpp_lib
     ${CMAKE_INSTALL_PREFIX}/lib/libyaml-cpp.a
 )
 
-
 # 3-Madler/zlib #
 
 ExternalProject_Add(zlib
@@ -213,7 +212,31 @@ else()
         src/http-client/request-builder.cpp
     )
 
-    add_executable(ReactiveCurl src/reactive-curl.cpp src/types.hpp ${HTTP_CLIENT_FILES})
+    set(CARDANO_BLOCKCHAIN_API_FILES
+        src/blockchains/cardano/cardano-api.hpp
+        src/blockchains/cardano/cardano-api.cpp
+        src/blockchains/cardano/cardano-types.hpp
+    )
+
+    set(BITCOIN_BLOCKCHAIN_API_FILES
+        src/blockchains/bitcoin/bitcoin-api.hpp
+        src/blockchains/bitcoin/bitcoin-api.cpp
+        src/blockchains/bitcoin/bitcoin-types.hpp
+    )
+
+    set(BLOCKCHAIN_API_FILES
+        src/blockchains/cardano/cardano-api.hpp
+        src/blockchains/cardano/cardano-api.cpp
+        src/blockchains/cardano/cardano-types.hpp
+        src/blockchains/bitcoin/bitcoin-api.hpp
+        src/blockchains/bitcoin/bitcoin-api.cpp
+        src/blockchains/bitcoin/bitcoin-types.hpp
+        src/blockchains/ethereum/ethereum-api.hpp
+        src/blockchains/ethereum/ethereum-api.cpp
+        src/blockchains/ethereum/ethereum-types.hpp
+    )
+
+    add_executable(ReactiveCurl src/reactive-curl.cpp src/types.hpp ${HTTP_CLIENT_FILES} ${BLOCKCHAIN_API_FILES} )
 
     add_dependencies(ReactiveCurl yamlcpp zlib openssl curl nlohmann)
 

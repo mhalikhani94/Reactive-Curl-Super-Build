@@ -9,7 +9,6 @@ using json = nlohmann::json;
 #include <thread>
 #include "http-client/http-client.hpp"
 
-
 #include <rxcpp/rx.hpp>
 
 int main()
@@ -20,14 +19,13 @@ int main()
     rxcpp::composite_subscription lifetime;
     rxcpp::composite_subscription lifetime2;
 
-
-    const auto get_url = "https://httpbin.org/get";
-    const auto post_url = "https://httpbin.org/post";
+    const auto get_url = "https://mh-rx-test.free.beeceptor.com/my/api/path";
+    const auto post_url = "https://mh-rx-test.free.beeceptor.com/my/api/path";
 
     HttpClient client;
     
     rxcpp::observable<>::create<HttpResponse>([&](rxcpp::subscriber<HttpResponse> out)
-   {
+    {
         try
         {
             client.build()->Get(get_url)
@@ -69,13 +67,15 @@ int main()
         }
     );
 
+    
     rxcpp::observable<>::create<HttpResponse>([&](rxcpp::subscriber<HttpResponse> out)
     {
         try
         {
             client.build()->Post(post_url)
             .accept_json()
-            .add_json_body("")
+            .add_json_body("{\"data\":\"Hello Beeceptor\"}")
+            .add_header("Content-Type: application/json")
             .add_header("Cache-Control: no-cache, no-store, must-revalidate")
             .add_header("Pragma: no-cache")
             .add_header("Expires: 0")

@@ -138,7 +138,7 @@ private:
     bool is_built = false;
     completion_fn_t completion;
     long request_timeout = 10000L; // 10 sec
-    long connect_timeout = 3000L; // 1 sec
+    long connect_timeout = 3000L; // 3 sec
 };
 
 #endif //REACTIVE_CURL_REQUEST_BUILDER_HPP_
