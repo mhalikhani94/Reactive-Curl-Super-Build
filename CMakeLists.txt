@@ -42,6 +42,7 @@ ExternalProject_Add(nlohmann
 		-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
 		-DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_INSTALL_PREFIX}
 		-DJSON_BuildTests=OFF
+        -DBUILD_TESTING=OFF
 		-DJSON_MultipleHeaders=OFF
         ${CMAKE_ANDROID_BUILD_ARGS}
 )
@@ -75,6 +76,7 @@ ExternalProject_Add(zlib
         DEPENDS yamlcpp
         URL "https://github.com/madler/zlib/archive/refs/tags/v1.2.12.zip"
         BUILD_BYPRODUCTS ${CMAKE_INSTALL_PREFIX}/lib/libz.a
+        BUILD_BYPRODUCTS ${CMAKE_INSTALL_PREFIX}/lib/libzlibstatic.a
         CMAKE_ARGS
             -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
             -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
@@ -84,7 +86,12 @@ ExternalProject_Add(zlib
             ${CMAKE_ANDROID_BUILD_ARGS}
 )
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    set(ZLIB_LIBRARIES ${CMAKE_INSTALL_PREFIX}/lib/libzlibstatic.a)
+    add_library(zlib_lib STATIC IMPORTED GLOBAL)
+    add_dependencies(zlib_lib zlib)
+    set_target_properties(zlib_lib
+        PROPERTIES IMPORTED_LOCATION
+        ${CMAKE_INSTALL_PREFIX}/lib/libzlibstatic.a
+)
 else()
     add_library(zlib_lib STATIC IMPORTED GLOBAL)
     add_dependencies(zlib_lib zlib)
@@ -151,7 +158,6 @@ ExternalProject_Add(curl
             -DCURL_USE_LIBPSL=OFF
             -DUSE_LIBIDN2=OFF
             -DCURL_USE_LIBSSH2=OFF
-            -DCURL_DISABLE_LDAP=ON
             -DOPENSSL_SSL_LIBRARIES=${OPENSSL_SSL_LIBRARIES}
             -DOPENSSL_CRYPTO_LIBRARIES=${OPENSSL_CRYPTO_LIBRARIES}
             -DOPENSSL_LIBRARIES=${OPENSSL_LIBRARIES}
@@ -162,7 +168,7 @@ ExternalProject_Add(curl
             ${CMAKE_ANDROID_BUILD_ARGS}
 )
 
-add_library(curl_lib STATIC IMPORTED GLOBAL)
+add_library(curl_lib STATIC IMPORTED)
 add_dependencies(curl_lib curl)
 set_target_properties(curl_lib
     PROPERTIES IMPORTED_LOCATION
@@ -238,7 +244,7 @@ else()
 
     add_executable(ReactiveCurl src/reactive-curl.cpp src/types.hpp ${HTTP_CLIENT_FILES} ${BLOCKCHAIN_API_FILES} )
 
-    add_dependencies(ReactiveCurl yamlcpp zlib openssl curl nlohmann)
+    add_dependencies(ReactiveCurl curl openssl zlib yamlcpp nlohmann)
 
     include_directories("include")
     target_include_directories(ReactiveCurl PUBLIC
