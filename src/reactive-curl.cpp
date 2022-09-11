@@ -7,6 +7,7 @@ using json = nlohmann::json;
 #include <iostream>
 #include <chrono>
 #include <thread>
+#include <variant>
 #include "http-client/http-client.hpp"
 
 #include <rxcpp/rx.hpp>

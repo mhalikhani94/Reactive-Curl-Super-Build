@@ -18,7 +18,7 @@ BitcoinApi::~BitcoinApi()
 
 }
 
-rxcpp::observable<double> BitcoinApi::retrieve_address_balance(std::string address)
+rxcpp::observable<BigInteger> BitcoinApi::retrieve_address_balance(std::string address)
 {
     auto worker_thread = rxcpp::observe_on_event_loop();
 
@@ -56,8 +56,8 @@ rxcpp::observable<double> BitcoinApi::retrieve_address_balance(std::string addre
     .map([&](const HttpResponse& result)
     {
         //TODO: parse result.body to get balance!
-        double double_result{};
-        return double_result;
+        BigInteger big_integer_result{};
+        return big_integer_result;
     });
 }
 

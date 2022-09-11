@@ -14,7 +14,7 @@ public:
     BitcoinApi(HttpClient* client, bool for_test_net_use);
     ~BitcoinApi();
 
-    rxcpp::observable<double> retrieve_address_balance(std::string address);
+    rxcpp::observable<BigInteger> retrieve_address_balance(std::string address);
 
     rxcpp::observable<AddressTransactionsPage> retrieve_transactions_desc(std::string address,
         long page, int page_size);

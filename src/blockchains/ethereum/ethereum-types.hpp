@@ -7,38 +7,106 @@ using json = nlohmann::json;
 #include <string>
 #include <vector>
 #include <list>
+#include <variant>
 
 //TODO: maybe we need to change these public members to private.
 
-namespace ns
+struct JsonRpcRequestBody
 {
-    struct JsonRpcRequestBody
-    {
-        std::string jsonrpc;
-        std::string method;
-        std::vector<std::any> params;
-        int id;
-    };
+    std::string jsonrpc;
+    std::string method;
+    std::vector<std::any> params;
+    int id;
+};
 
-    void to_json(json& j, const RawUtxo& p)
-    {
-        j = json
-        {
-            {"jsonrpc", p.jsonrpc},
-            {"method", p.method},
-            {"params", p.params},
-            {"id", p.id}
-        };
-    }
+struct BigInteger
+{
+	double big_integer;
 
-    void from_json(const json& j, RawUtxo& p)
+    std::string to_string()
     {
-        j.at("jsonrpc").get_to(p.jsonrpc);
-        j.at("method").get_to(p.method);
-        j.at("params").get_to(p.params);
-        j.at("id").get_to(p.id);
+        return std::string{};
     }
-} //namespace ns
+};
+
+enum class EtherNetworks
+{
+    kMainnet,
+    kRopsten,
+    kRinkeby,
+    kGoerli,
+    kKovan,
+};
+
+struct JsonRpcResponseErrorDetail
+{
+    std::string code{};
+    std::string message{};
+};
+
+struct JsonRpcStringResponse 
+{
+    int id{0};
+    std::string jsonrpc{};
+    std::string result{};
+    std::string status{};
+    std::string message{};
+    JsonRpcResponseErrorDetail error{};
+};
+
+struct EtherTransaction
+{
+    std::string block_number;
+    std::string hash;
+    std::string nonce;
+    std::string block_hash;
+    std::string transaction_index;
+    std::string from;
+    std::string to;
+    std::string value;
+    std::string gas;
+    std::string gas_price;
+    std::string is_error; //TODO this parameter need more check.
+    std::string tx_receipt_status; // "0" = execution failed & "1" = execution succeeded
+    std::string input;
+    std::string contract_address;
+    std::string cumulative_gas_used;
+    std::string gas_used;
+    std::string confirmations;
+};
+
+struct EtherTransactionsPage
+{
+    std::vector<EtherTransaction> transactions;
+};
+
+struct EtherTokenTransferTransaction
+{
+    std::string block_number;
+    std::string time_stamp;
+    std::string hash;
+    std::string nonce;
+    std::string block_hash;
+    std::string from;
+    std::string contract_address;
+    std::string to;
+    std::string value;
+    std::string token_name;
+    std::string token_symbol;
+    std::string token_decimal;
+    std::string transaction_index;
+    std::string gas;
+    std::string gas_price;
+    std::string gas_used;
+    std::string cumulative_gas_used;
+    std::string input;
+    std::string confirmations;
+};
+
+struct EtherTokenTransferTransactionsPage
+{
+    std::vector<EtherTokenTransferTransaction> transactions;
+};
 
 #endif //REACTIVE_CURL_ETHEREUM_TYPES_HPP_
 

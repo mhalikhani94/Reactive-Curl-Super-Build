@@ -75,6 +75,11 @@ struct SendTransactionResult
 	std::string result;
 };
 
+struct BigInteger
+{
+	double big_integer;
+};
+
 #endif //REACTIVE_CURL_BITCOIN_TYPES_HPP_
 
 
