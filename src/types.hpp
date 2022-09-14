@@ -1,6 +1,7 @@
 #ifndef REACTIVE_CURL_TYPES_HPP
 #define REACTIVE_CURL_TYPES_HPP
 
+#define CURL_STATICLIB
 #include <curl/curl.h>
 
 #include <string>

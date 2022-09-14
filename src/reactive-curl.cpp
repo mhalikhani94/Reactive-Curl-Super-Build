@@ -8,7 +8,10 @@ using json = nlohmann::json;
 #include <chrono>
 #include <thread>
 #include <variant>
+
 #include "http-client/http-client.hpp"
+#include "blockchains/cardano/cardano-types.hpp"
+#include "blockchains/cardano/cardano-parsers.hpp"
 
 #include <rxcpp/rx.hpp>
 
@@ -18,19 +21,20 @@ int main()
     auto main_thread = rxcpp::observe_on_run_loop(run_loop);
     auto worker_thread = rxcpp::observe_on_event_loop();
     rxcpp::composite_subscription lifetime;
-    rxcpp::composite_subscription lifetime2;
 
-    const auto get_url = "https://mh-rx-test.free.beeceptor.com/my/api/path";
-    const auto post_url = "https://mh-rx-test.free.beeceptor.com/my/api/path";
+    HttpClient http_client;
 
-    HttpClient client;
-    
+    const std::string kCardanoTestNetUrl{"https://cardano-testnet.blockfrost.io/api/v0"};
+    const std::string kProjectId{"testnetjUxsYyrsuB1D5d7EfacQBcVi6Tg7dsUK"};
+
     rxcpp::observable<>::create<HttpResponse>([&](rxcpp::subscriber<HttpResponse> out)
     {
         try
         {
-            client.build()->Get(get_url)
-            .add_curl_option(CURLOPT_VERBOSE, 0L)
+            http_client.build()->Get(kCardanoTestNetUrl + "/blocks/latest")
+            .accept_json()
+            .add_header("project_id: testnetjUxsYyrsuB1D5d7EfacQBcVi6Tg7dsUK")
+            .add_header("Content-Type","application/json; charset=utf-8")
             .process_response([&](const HttpResponse& result)
             {
                 if (result.is_ok())
@@ -57,74 +61,30 @@ int main()
     (lifetime,
         [&](const HttpResponse& r)
         {
-            std::cout << r.body << std::endl;
+            std::cout << CardanoParser::parse_get_slot_num_response(r) << std::endl;
         },
         [](std::exception_ptr ep)
         {
-            std::cout << "on error" << std::endl;
-        }, [] ()
-        {
-            std::cout << "on completed!" << std::endl;
-        }
-    );
-
-    
-    rxcpp::observable<>::create<HttpResponse>([&](rxcpp::subscriber<HttpResponse> out)
-    {
-        try
-        {
-            client.build()->Post(post_url)
-            .accept_json()
-            .add_json_body("{\"data\":\"Hello Beeceptor\"}")
-            .add_header("Content-Type: application/json")
-            .add_header("Cache-Control: no-cache, no-store, must-revalidate")
-            .add_header("Pragma: no-cache")
-            .add_header("Expires: 0")
-            .process_response([&](const HttpResponse& result)
+            try
             {
-                if (result.is_ok())
-                {
-                    try
-                    {
-                        out.on_next(result);
-                        out.on_completed();
-                    } catch ( ... ) {
-                        out.on_error(std::current_exception());
-                    }
-                    
-                } else {
-                    out.on_next(result);
-                    out.on_completed();
-                }
-            })
-            .send_request();
-        } catch ( ... ) {
-            out.on_error(std::current_exception());
-        }
-    }).subscribe_on(worker_thread)
-    .observe_on(main_thread)
-    .subscribe
-    (lifetime2,
-        [&](const HttpResponse& r)
-        {
-            std::cout << r.body << std::endl;
-        },
-        [](std::exception_ptr ep)
-        {
-            std::cout << "on error" << std::endl;
+                std::rethrow_exception(ep);
+            } catch (const std::exception& e) {
+                std::cerr << e.what() << std::endl;
+            }
         }, [] ()
         {
             std::cout << "on completed!" << std::endl;
         }
     );
 
-    while (lifetime.is_subscribed() || lifetime2.is_subscribed() || !run_loop.empty())
+    while (lifetime.is_subscribed() || !run_loop.empty())
     {
         while (!run_loop.empty() && run_loop.peek().when < run_loop.now())
         {
             run_loop.dispatch();
         }
     }
+
     return 0;
 }
 
@@ -239,3 +199,105 @@ int main()
     //     }
     // ));
 
+
+
+    // rxcpp::observable<>::create<HttpResponse>([&](rxcpp::subscriber<HttpResponse> out)
+    // {
+    //     try
+    //     {
+    //         client.build()->Get(get_url)
+    //         .add_curl_option(CURLOPT_VERBOSE, 0L)
+    //         .process_response([&](const HttpResponse& result)
+    //         {
+    //             if (result.is_ok())
+    //             {
+    //                 try
+    //                 {
+    //                     out.on_next(result);
+    //                     out.on_completed();
+    //                 } catch ( ... ) {
+    //                     out.on_error(std::current_exception());
+    //                 }
+    //             } else {
+    //                 out.on_next(result);
+    //                 out.on_completed();
+    //             }
+    //         })
+    //         .send_request();
+    //     } catch ( ... ) {
+    //         out.on_error(std::current_exception());
+    //     }
+    // }).subscribe_on(worker_thread)
+    // .observe_on(main_thread)
+    // .subscribe
+    // (lifetime,
+    //     [&](const HttpResponse& r)
+    //     {
+    //         std::cout << r.body << std::endl;
+    //     },
+    //     [](std::exception_ptr ep)
+    //     {
+    //         std::cout << "on error" << std::endl;
+    //     }, [] ()
+    //     {
+    //         std::cout << "on completed!" << std::endl;
+    //     }
+    // );
+
+    
+    // rxcpp::observable<>::create<HttpResponse>([&](rxcpp::subscriber<HttpResponse> out)
+    // {
+    //     try
+    //     {
+    //         client.build()->Post(post_url)
+    //         .accept_json()
+    //         .add_json_body("{\"data\":\"Hello Beeceptor\"}")
+    //         .add_header("Content-Type: application/json")
+    //         .add_header("Cache-Control: no-cache, no-store, must-revalidate")
+    //         .add_header("Pragma: no-cache")
+    //         .add_header("Expires: 0")
+    //         .process_response([&](const HttpResponse& result)
+    //         {
+    //             if (result.is_ok())
+    //             {
+    //                 try
+    //                 {
+    //                     out.on_next(result);
+    //                     out.on_completed();
+    //                 } catch ( ... ) {
+    //                     out.on_error(std::current_exception());
+    //                 }
+                    
+    //             } else {
+    //                 out.on_next(result);
+    //                 out.on_completed();
+    //             }
+    //         })
+    //         .send_request();
+    //     } catch ( ... ) {
+    //         out.on_error(std::current_exception());
+    //     }
+    // }).subscribe_on(worker_thread)
+    // .observe_on(main_thread)
+    // .subscribe
+    // (lifetime2,
+    //     [&](const HttpResponse& r)
+    //     {
+    //         std::cout << r.body << std::endl;
+    //     },
+    //     [](std::exception_ptr ep)
+    //     {
+    //         std::cout << "on error" << std::endl;
+    //     }, [] ()
+    //     {
+    //         std::cout << "on completed!" << std::endl;
+    //     }
+    // );
+
+    // while (lifetime.is_subscribed() || lifetime2.is_subscribed() || !run_loop.empty())
+    // {
+    //     while (!run_loop.empty() && run_loop.peek().when < run_loop.now())
+    //     {
+    //         run_loop.dispatch();
+    //     }
+    // }

@@ -74,41 +74,48 @@ set_target_properties(yamlcpp_lib
 
 ExternalProject_Add(zlib
         DEPENDS yamlcpp
-        URL "https://github.com/madler/zlib/archive/refs/tags/v1.2.12.zip"
+        URL "https://github.com/mhalikhani94/zlib/archive/refs/tags/v0.0.1.zip"
         BUILD_BYPRODUCTS ${CMAKE_INSTALL_PREFIX}/lib/libz.a
-        BUILD_BYPRODUCTS ${CMAKE_INSTALL_PREFIX}/lib/libzlibstatic.a
         CMAKE_ARGS
             -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
             -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
             -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
             -DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_INSTALL_PREFIX}
             -DBUILD_SHARED_LIBS=OFF
+            -DSKIP_INSTALL_FILES=ON
             ${CMAKE_ANDROID_BUILD_ARGS}
 )
-if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    add_library(zlib_lib STATIC IMPORTED GLOBAL)
-    add_dependencies(zlib_lib zlib)
-    set_target_properties(zlib_lib
-        PROPERTIES IMPORTED_LOCATION
-        ${CMAKE_INSTALL_PREFIX}/lib/libzlibstatic.a
-)
-else()
-    add_library(zlib_lib STATIC IMPORTED GLOBAL)
+add_library(zlib_lib STATIC IMPORTED GLOBAL)
     add_dependencies(zlib_lib zlib)
     set_target_properties(zlib_lib
         PROPERTIES IMPORTED_LOCATION
         ${CMAKE_INSTALL_PREFIX}/lib/libz.a
     )
-endif()   
+
+# if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+#     add_library(zlib_lib STATIC IMPORTED GLOBAL)
+#     add_dependencies(zlib_lib zlib)
+#     set_target_properties(zlib_lib
+#         PROPERTIES IMPORTED_LOCATION
+#         ${CMAKE_INSTALL_PREFIX}/lib/libzlibstatic.a
+# )
+# else()
+#     add_library(zlib_lib STATIC IMPORTED GLOBAL)
+#     add_dependencies(zlib_lib zlib)
+#     set_target_properties(zlib_lib
+#         PROPERTIES IMPORTED_LOCATION
+#         ${CMAKE_INSTALL_PREFIX}/lib/libz.a
+#     )
+# endif()   
 
 
 # 4-Janbar/openssl-cmake #
 
 ExternalProject_Add(openssl
         DEPENDS zlib
-        URL "https://github.com/mhalikhani94/openssl-cmake/archive/refs/tags/v0.0.1.zip"
-        BUILD_BYPRODUCTS ${CMAKE_INSTALL_PREFIX}/lib/libssl_1_1.a
-        BUILD_BYPRODUCTS ${CMAKE_INSTALL_PREFIX}/lib/libcrypto_1_1.a
+        URL "https://github.com/mhalikhani94/openssl-cmake/archive/refs/tags/v0.0.4.zip"
+        BUILD_BYPRODUCTS ${CMAKE_INSTALL_PREFIX}/lib/libssl.a
+        BUILD_BYPRODUCTS ${CMAKE_INSTALL_PREFIX}/lib/libcrypto.a
         CMAKE_ARGS
             -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
             -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
@@ -145,7 +152,7 @@ set_target_properties(OpenSSL::Crypto PROPERTIES IMPORTED_LOCATION ${OPENSSL_CRY
 
 ExternalProject_Add(curl
         DEPENDS openssl
-        URL "https://github.com/mhalikhani94/curl/archive/refs/tags/v0.0.2.zip"
+        URL "https://github.com/mhalikhani94/curl/archive/refs/tags/v0.0.1.zip"
         BUILD_BYPRODUCTS ${CMAKE_INSTALL_PREFIX}/lib/libcurl.a
         CMAKE_ARGS
             -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
@@ -165,6 +172,7 @@ ExternalProject_Add(curl
             -DOPENSSL_USE_STATIC_LIBS=TRUE
             -DBUILD_CURL_EXE=0
             -DBUILD_TESTING=OFF
+            -DUSE_MANUAL=OFF
             ${CMAKE_ANDROID_BUILD_ARGS}
 )
 
@@ -234,6 +242,8 @@ else()
         src/blockchains/cardano/cardano-api.hpp
         src/blockchains/cardano/cardano-api.cpp
         src/blockchains/cardano/cardano-types.hpp
+        src/blockchains/cardano/cardano-parsers.hpp
+        src/blockchains/cardano/cardano-parsers.cpp
         src/blockchains/bitcoin/bitcoin-api.hpp
         src/blockchains/bitcoin/bitcoin-api.cpp
         src/blockchains/bitcoin/bitcoin-types.hpp
