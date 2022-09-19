@@ -91,21 +91,13 @@ rxcpp::observable<long> CardanoApi::get_slot_num(NetworkType network_type)
     }).subscribe_on(worker_thread)
     .map([&](const HttpResponse& result)
     {
-<<<<<<< HEAD
-        return CardanoParser::parse_get_slot_num_response(result);
-    });
-}
-
-rxcpp::observable<std::string> CardanoApi::submit_signed_tx(std::vector<uint8_t> signed_transaction
-=======
         //TODO: parse result.body to get result!
         long long_result{};
         return long_result;
     });
 }
 
-rxcpp::observable<std::string> submit_signed_tx(std::vector<uint8_t> signed_transaction
->>>>>>> 30648289464473a3d0012b5942e12245054fcf07
+rxcpp::observable<std::string> CardanoApi::submit_signed_tx(std::vector<uint8_t> signed_transaction
     , NetworkType network_type)
 {
     auto worker_thread = rxcpp::observe_on_event_loop();

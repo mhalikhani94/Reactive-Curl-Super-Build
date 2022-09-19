@@ -20,12 +20,20 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Android")
         -DANDROID_NDK=${ANDROID_NDK}
         -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
         -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
-        -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+        -DCMAKE_BUILD_TYPE=Release
         -DANDROID_ARM_NEON=${ANDROID_ARM_NEON}
         -DANDROID_TOOLCHAIN=${ANDROID_TOOLCHAIN}
     )
 else()
     set(CMAKE_ANDROID_BUILD_ARGS "")
+endif()
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    set(CMAKE_CURL_WINDOWS_BUILD_ARGS
+        -DUSE_WIN32_CRYPTO=1
+    )
+else()
+    set(CMAKE_CURL_WINDOWS_BUILD_ARGS "")
 endif()
 
 include(ExternalProject)
@@ -152,7 +160,7 @@ set_target_properties(OpenSSL::Crypto PROPERTIES IMPORTED_LOCATION ${OPENSSL_CRY
 
 ExternalProject_Add(curl
         DEPENDS openssl
-        URL "https://github.com/mhalikhani94/curl/archive/refs/tags/v0.0.1.zip"
+        URL "https://github.com/mhalikhani94/curl/archive/refs/tags/v0.0.3.zip"
         BUILD_BYPRODUCTS ${CMAKE_INSTALL_PREFIX}/lib/libcurl.a
         CMAKE_ARGS
             -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
@@ -173,6 +181,7 @@ ExternalProject_Add(curl
             -DBUILD_CURL_EXE=0
             -DBUILD_TESTING=OFF
             -DUSE_MANUAL=OFF
+            ${CMAKE_CURL_WINDOWS_BUILD_ARGS}
             ${CMAKE_ANDROID_BUILD_ARGS}
 )
 
@@ -267,7 +276,7 @@ else()
     crypto_lib
     zlib_lib
     yamlcpp_lib
-    wldap32 ws2_32 Crypt32.lib Wldap32 Normaliz
+    wldap32 ws2_32 Crypt32 Normaliz
     )
     else()
     target_link_libraries(ReactiveCurl

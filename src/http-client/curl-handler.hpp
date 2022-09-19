@@ -13,7 +13,11 @@ public:
     using ptr_t = std::unique_ptr<CurlHandle>;
     using curl_handle_t = decltype(curl_easy_init());
 
-    CurlHandle() = default;
+    CurlHandle()
+    {
+        curl_easy_setopt(handle, CURLOPT_SSLCERTTYPE, "PEM");
+        curl_easy_setopt(handle, CURLOPT_CAINFO, "../src/http-client/cacert.pem");
+    }
 
     ~CurlHandle()
     {

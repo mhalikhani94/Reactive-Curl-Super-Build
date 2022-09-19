@@ -2,6 +2,7 @@
 #define REACTIVE_CURL_TYPES_HPP
 
 #define CURL_STATICLIB
+#define USE_WIN32_CRYPTO
 #include <curl/curl.h>
 
 #include <string>

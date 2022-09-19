@@ -31,8 +31,10 @@ int main()
     {
         try
         {
+            // http_client.build()->Get("www.google.com")
             http_client.build()->Get(kCardanoTestNetUrl + "/blocks/latest")
             .accept_json()
+            .add_curl_option(CURLOPT_SSL_VERIFYPEER,1L)
             .add_header("project_id: testnetjUxsYyrsuB1D5d7EfacQBcVi6Tg7dsUK")
             .add_header("Content-Type","application/json; charset=utf-8")
             .process_response([&](const HttpResponse& result)
