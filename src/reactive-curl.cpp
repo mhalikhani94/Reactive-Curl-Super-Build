@@ -17,6 +17,8 @@ using json = nlohmann::json;
 
 int main()
 {
+    std::cout << "hello world!" << std::endl;
+    
     rxcpp::schedulers::run_loop run_loop;
     auto main_thread = rxcpp::observe_on_run_loop(run_loop);
     auto worker_thread = rxcpp::observe_on_event_loop();

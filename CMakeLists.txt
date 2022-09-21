@@ -45,7 +45,6 @@ include(ExternalProject)
 ExternalProject_Add(nlohmann
 	URL "https://github.com/nlohmann/json/archive/refs/tags/v3.11.2.zip"
 	CMAKE_ARGS
-		-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
 		-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
 		-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
 		-DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_INSTALL_PREFIX}
@@ -59,10 +58,9 @@ ExternalProject_Add(nlohmann
 
 ExternalProject_Add(yamlcpp
     DEPENDS nlohmann
-    URL "https://github.com/jbeder/yaml-cpp/archive/refs/tags/yaml-cpp-0.7.0.zip"
+    URL "https://github.com/mhalikhani94/yaml-cpp/archive/refs/tags/v0.0.1.zip"
     BUILD_BYPRODUCTS ${CMAKE_INSTALL_PREFIX}/lib/libyaml-cpp.a
     CMAKE_ARGS
-        -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
         -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
         -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
         -DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_INSTALL_PREFIX}
@@ -78,6 +76,12 @@ set_target_properties(yamlcpp_lib
     ${CMAKE_INSTALL_PREFIX}/lib/libyaml-cpp.a
 )
 
+add_custom_command(TARGET yamlcpp POST_BUILD
+        COMMAND "${ANDROID_TOOLCHAIN_PREFIX}strip" -g -S -d --verbose
+        ${CMAKE_INSTALL_PREFIX}/lib/libyaml-cpp.a
+        COMMENT "."
+)
+
 # 3-Madler/zlib #
 
 ExternalProject_Add(zlib
@@ -85,7 +89,6 @@ ExternalProject_Add(zlib
         URL "https://github.com/mhalikhani94/zlib/archive/refs/tags/v0.0.1.zip"
         BUILD_BYPRODUCTS ${CMAKE_INSTALL_PREFIX}/lib/libz.a
         CMAKE_ARGS
-            -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
             -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
             -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
             -DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_INSTALL_PREFIX}
@@ -99,6 +102,12 @@ add_library(zlib_lib STATIC IMPORTED GLOBAL)
         PROPERTIES IMPORTED_LOCATION
         ${CMAKE_INSTALL_PREFIX}/lib/libz.a
     )
+
+add_custom_command(TARGET zlib POST_BUILD
+        COMMAND "${ANDROID_TOOLCHAIN_PREFIX}strip" -g -S -d --verbose
+        ${CMAKE_INSTALL_PREFIX}/lib/libz.a
+        COMMENT "."
+)
 
 # if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
 #     add_library(zlib_lib STATIC IMPORTED GLOBAL)
@@ -125,7 +134,6 @@ ExternalProject_Add(openssl
         BUILD_BYPRODUCTS ${CMAKE_INSTALL_PREFIX}/lib/libssl.a
         BUILD_BYPRODUCTS ${CMAKE_INSTALL_PREFIX}/lib/libcrypto.a
         CMAKE_ARGS
-            -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
             -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
             -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
             -DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_INSTALL_PREFIX}
@@ -151,6 +159,18 @@ set_target_properties(crypto_lib
     ${CMAKE_INSTALL_PREFIX}/lib/libcrypto.a
 )
 
+add_custom_command(TARGET openssl POST_BUILD
+        COMMAND "${ANDROID_TOOLCHAIN_PREFIX}strip" -g -S -d --verbose
+        ${CMAKE_INSTALL_PREFIX}/lib/libssl.a
+        COMMENT "."
+)
+
+add_custom_command(TARGET openssl POST_BUILD
+        COMMAND "${ANDROID_TOOLCHAIN_PREFIX}strip" -g -S -d --verbose
+        ${CMAKE_INSTALL_PREFIX}/lib/libcrypto.a
+        COMMENT "."
+)
+
 add_library(OpenSSL::SSL STATIC IMPORTED GLOBAL)
 add_library(OpenSSL::Crypto STATIC IMPORTED GLOBAL)
 set_target_properties(OpenSSL::SSL PROPERTIES IMPORTED_LOCATION ${OPENSSL_SSL_LIBRARIES})
@@ -160,10 +180,9 @@ set_target_properties(OpenSSL::Crypto PROPERTIES IMPORTED_LOCATION ${OPENSSL_CRY
 
 ExternalProject_Add(curl
         DEPENDS openssl
-        URL "https://github.com/mhalikhani94/curl/archive/refs/tags/v0.0.3.zip"
+        URL "https://github.com/mhalikhani94/curl/archive/refs/tags/v0.0.4.zip"
         BUILD_BYPRODUCTS ${CMAKE_INSTALL_PREFIX}/lib/libcurl.a
         CMAKE_ARGS
-            -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
             -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
             -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
             -DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_INSTALL_PREFIX}
@@ -190,19 +209,63 @@ add_dependencies(curl_lib curl)
 set_target_properties(curl_lib
     PROPERTIES IMPORTED_LOCATION
     ${CMAKE_INSTALL_PREFIX}/lib/libcurl.a
-)    
+)
+
+add_custom_command(TARGET curl POST_BUILD
+        COMMAND "${ANDROID_TOOLCHAIN_PREFIX}strip" -g -S -d --verbose
+        ${CMAKE_INSTALL_PREFIX}/lib/libcurl.a
+        COMMENT "."
+)
 
 ### Application ###
+
+set(HTTP_CLIENT_FILES
+    src/http-client/curl-handler.hpp
+    src/http-client/exceptions.hpp
+    src/http-client/http-client.hpp
+    src/http-client/http-request.hpp
+    src/http-client/http-request.cpp
+    src/http-client/http-response.hpp
+    src/http-client/options.hpp
+    src/http-client/request-builder.hpp
+    src/http-client/request-builder.cpp
+)
+
+set(CARDANO_BLOCKCHAIN_API_FILES
+    src/blockchains/cardano/cardano-api.hpp
+    src/blockchains/cardano/cardano-api.cpp
+    src/blockchains/cardano/cardano-types.hpp
+)
+
+set(BITCOIN_BLOCKCHAIN_API_FILES
+    src/blockchains/bitcoin/bitcoin-api.hpp
+    src/blockchains/bitcoin/bitcoin-api.cpp
+    src/blockchains/bitcoin/bitcoin-types.hpp
+)
+
+set(BLOCKCHAIN_API_FILES
+    src/blockchains/cardano/cardano-api.hpp
+    src/blockchains/cardano/cardano-api.cpp
+    src/blockchains/cardano/cardano-types.hpp
+    src/blockchains/cardano/cardano-parsers.hpp
+    src/blockchains/cardano/cardano-parsers.cpp
+    src/blockchains/bitcoin/bitcoin-api.hpp
+    src/blockchains/bitcoin/bitcoin-api.cpp
+    src/blockchains/bitcoin/bitcoin-types.hpp
+    src/blockchains/ethereum/ethereum-api.hpp
+    src/blockchains/ethereum/ethereum-api.cpp
+    src/blockchains/ethereum/ethereum-types.hpp
+)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Android")
     include_directories(${PROJECT_SOURCE_DIR}/include)
 
     add_library(reactivex
         SHARED
-        native-lib.cpp rx-request-manager.cpp rx-request-manager.hpp rx-curl.hpp
+        native-lib.cpp src/types.hpp ${HTTP_CLIENT_FILES} ${BLOCKCHAIN_API_FILES}
     )
 
-    add_dependencies(reactivex yamlcpp zlib openssl curl nlohmann)
+    add_dependencies(reactivex zlib openssl curl nlohmann)
 
     find_library(log-lib
         log
@@ -219,74 +282,77 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Android")
         ssl_lib
         crypto_lib
         zlib_lib
-        yamlcpp_lib
     )
 else()
 
-    set(HTTP_CLIENT_FILES
-        src/http-client/curl-handler.hpp
-        src/http-client/exceptions.hpp
-        src/http-client/http-client.hpp
-        src/http-client/http-request.hpp
-        src/http-client/http-request.cpp
-        src/http-client/http-response.hpp
-        src/http-client/options.hpp
-        src/http-client/request-builder.hpp
-        src/http-client/request-builder.cpp
+    include_directories(${PROJECT_SOURCE_DIR}/include)
+
+    add_library(ReactiveCurl
+        SHARED
+        src/types.hpp ${HTTP_CLIENT_FILES} ${BLOCKCHAIN_API_FILES}
     )
 
-    set(CARDANO_BLOCKCHAIN_API_FILES
-        src/blockchains/cardano/cardano-api.hpp
-        src/blockchains/cardano/cardano-api.cpp
-        src/blockchains/cardano/cardano-types.hpp
+    add_dependencies(ReactiveCurl zlib yamlcpp openssl curl nlohmann)
+
+    target_include_directories(ReactiveCurl
+        PUBLIC
+        ${REACTIVEX_PROJECT_INCLUDE_DIR}
     )
 
-    set(BITCOIN_BLOCKCHAIN_API_FILES
-        src/blockchains/bitcoin/bitcoin-api.hpp
-        src/blockchains/bitcoin/bitcoin-api.cpp
-        src/blockchains/bitcoin/bitcoin-types.hpp
-    )
-
-    set(BLOCKCHAIN_API_FILES
-        src/blockchains/cardano/cardano-api.hpp
-        src/blockchains/cardano/cardano-api.cpp
-        src/blockchains/cardano/cardano-types.hpp
-        src/blockchains/cardano/cardano-parsers.hpp
-        src/blockchains/cardano/cardano-parsers.cpp
-        src/blockchains/bitcoin/bitcoin-api.hpp
-        src/blockchains/bitcoin/bitcoin-api.cpp
-        src/blockchains/bitcoin/bitcoin-types.hpp
-        src/blockchains/ethereum/ethereum-api.hpp
-        src/blockchains/ethereum/ethereum-api.cpp
-        src/blockchains/ethereum/ethereum-types.hpp
-    )
-
-    add_executable(ReactiveCurl src/reactive-curl.cpp src/types.hpp ${HTTP_CLIENT_FILES} ${BLOCKCHAIN_API_FILES} )
-
-    add_dependencies(ReactiveCurl curl openssl zlib yamlcpp nlohmann)
-
-    include_directories("include")
-    target_include_directories(ReactiveCurl PUBLIC
-    ${REACTIVEX_PROJECT_INCLUDE_DIR}
-    )
-    if(WIN32)
     target_link_libraries(ReactiveCurl
-    curl_lib
-    ssl_lib 
-    crypto_lib
-    zlib_lib
-    yamlcpp_lib
-    wldap32 ws2_32 Crypt32 Normaliz
+        ${log-lib}
+        curl_lib
+        ssl_lib
+        crypto_lib
+        zlib_lib
+    )
+
+    if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    target_link_libraries(ReactiveCurl
+        curl_lib
+        ssl_lib 
+        crypto_lib
+        zlib_lib
+        yamlcpp_lib
+        wldap32 ws2_32 Crypt32 Normaliz
     )
     else()
     target_link_libraries(ReactiveCurl
-    curl_lib
-    zlib_lib
-    ssl_lib
-    crypto_lib
-    yamlcpp_lib
-    dl pthread
+        curl_lib
+        zlib_lib
+        ssl_lib
+        crypto_lib
+        yamlcpp_lib
+        dl pthread
     )
-    endif(WIN32)
+    endif()
+
+    # add_executable(ReactiveCurl src/reactive-curl.cpp src/types.hpp ${HTTP_CLIENT_FILES} ${BLOCKCHAIN_API_FILES} )
+
+    # add_dependencies(ReactiveCurl curl openssl zlib yamlcpp nlohmann)
+
+    # include_directories("include")
+    # target_include_directories(ReactiveCurl PUBLIC
+    # ${REACTIVEX_PROJECT_INCLUDE_DIR}
+    # )
+    # if(WIN32)
+    # target_link_libraries(ReactiveCurl
+    # curl_lib
+    # ssl_lib 
+    # crypto_lib
+    # zlib_lib
+    # yamlcpp_lib
+    # wldap32 ws2_32 Crypt32 Normaliz
+    # )
+    # else()
+    # target_link_libraries(ReactiveCurl
+    # curl_lib
+    # zlib_lib
+    # ssl_lib
+    # crypto_lib
+    # yamlcpp_lib
+    # dl pthread
+    # )
+    # endif(WIN32)
 
 endif()
